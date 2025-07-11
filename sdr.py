@@ -6,24 +6,24 @@ import time
 server_ip = "62.45.168.247"
 server_port = "7878"
 
-sample_rate = 2.4e6
+
+sample_rate = 1.024e6
 decimation_factor = 10
 sdr = SoapySDR.Device(f"rtltcp={server_ip}:{server_port}")
 sdr.setSampleRate(SOAPY_SDR_RX, 0, sample_rate)
 rxStream = sdr.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
 sdr.activateStream(rxStream)
+time.sleep(1.0)
 
 def sdriq(i):
     freq = i * 1e3
-
     sdr.setFrequency(SOAPY_SDR_RX, 0, freq)
 
-    buff = np.array([]*8192, dtype=np.complex64)
+    buff = np.zeros(8192, dtype=np.complex64)
     iq_buffer = []
 
-
     while True:
-        sr = sdr.readStream(rxStream, [buff], len(buff))
+        sr = sdr.readStream(rxStream, [buff], len(buff), timeoutUs=2000)
         if sr.ret > 0:
             iq = buff[:sr.ret]
             iq = iq[::decimation_factor]

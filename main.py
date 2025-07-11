@@ -12,6 +12,8 @@ from PySide6.QtWidgets import QVBoxLayout
 
 from decoding_methods.am_decoding import audio_stream_am
 from decoding_methods.fm_decoding import audio_stream_fm
+
+
 from sdr import sdriq
 
 class MainWindow(QMainWindow):
@@ -19,21 +21,11 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
-        if self.ui.spectrumplot.layout() is None:
-            self.ui.spectrumplot.setLayout(QVBoxLayout())
+
 
         self.decode_thread = None
         self.running = False
-
-        self.spectrumplotW = pg.PlotWidget()
-        self.spectrumplotW.setYRange(-100,0)
-        self.spectrumplotW.setLabel('bottom', 'Freq', units='kHz')
-        self.spectrumplotW.setLabel('left', 'Power', units='dB')
-        self.spectrumplotW.showGrid(x=True, y=True)
-
-        self.ui.spectrumplot.layout().addWidget(self.spectrumplotW)
-        self.spectrum_curve = self.spectrumplotW.plot(pen='y')
-
+        
         self.buffer = np.array([], dtype = np.float32)
         self.volume = 0.5
         
@@ -49,13 +41,13 @@ class MainWindow(QMainWindow):
         self.ui.AM.clicked.connect(self.radiodecodemode)
         self.ui.FM.clicked.connect(self.radiodecodemode)
         self.ui.decodemode.setText(self.radio_mode)
-
         self.ui.volumebar.setMinimum(0)
         self.ui.volumebar.setMaximum(100)
         self.ui.volumebar.setValue(50)
         self.ui.volumebar.valueChanged.connect(self.change_volume)
 
         self.start_audio_stream()
+
     def change_volume(self, value):
         self.volume = value / 100.0
 
@@ -116,7 +108,6 @@ class MainWindow(QMainWindow):
     
     def demodulating(self):
         iq = sdriq(self.current_value)
-        iq_chunk_plotting = np.array(list(itertools.islice(iq, 1024)))
 
         if self.radio_mode == "AM":
             audio_data = audio_stream_am(iq)
@@ -124,7 +115,6 @@ class MainWindow(QMainWindow):
             audio_data = audio_stream_fm(iq)
         
         for audio_chunk in audio_data:
-            self.update_spectrum(iq_chunk_plotting)
             if not self.running:
                 break    
             try:
@@ -132,17 +122,6 @@ class MainWindow(QMainWindow):
             except queue.Full:
                 pass
 
-    def update_spectrum(self, iq):
-        if len(iq) < 256:
-            return
-        window = np.hanning(len(iq))
-        iq_window = iq * window
-
-        fft = np.fft.fft(iq_window)
-        power = 20 * np.log10(np.abs(fft[:len(fft)//2]) + 1e-6)
-
-        freq = np.linspace(0, 44100/2, len(power))
-        self.spectrum_curve.setData(freq, power)
     
     def sounddevice_stream_af(self):
         with sd.OutputStream(
@@ -156,7 +135,7 @@ class MainWindow(QMainWindow):
                 time.sleep(0.1)
 
 
-    def audio_stream(self, outdata, frames, status):
+    def audio_stream(self, outdata, frames, time_info, status):
         if status:
             print(status, file=sys.stderr)
         while len(self.buffer) < frames:

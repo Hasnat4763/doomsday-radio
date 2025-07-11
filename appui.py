@@ -77,6 +77,12 @@ class Ui_Dialog(object):
         self.spectrumplot = QGraphicsView(Dialog)
         self.spectrumplot.setObjectName(u"spectrumplot")
         self.spectrumplot.setGeometry(QRect(140, 140, 411, 291))
+        self.Demo = QPushButton(Dialog)
+        self.Demo.setObjectName(u"Demo")
+        self.Demo.setGeometry(QRect(160, 500, 80, 24))
+        self.Real = QPushButton(Dialog)
+        self.Real.setObjectName(u"Real")
+        self.Real.setGeometry(QRect(260, 500, 80, 24))
 
         self.retranslateUi(Dialog)
 
@@ -101,5 +107,7 @@ class Ui_Dialog(object):
         self.label_6.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p align=\"center\"><span style=\" font-size:18pt; font-weight:600;\">KHz</span></p></body></html>", None))
         self.label_7.setText(QCoreApplication.translate("Dialog", u"<html><head/><body><p align=\"center\"><span style=\" font-size:14pt;\">Volume</span></p></body></html>", None))
         self.decodemode.setText("")
+        self.Demo.setText(QCoreApplication.translate("Dialog", u"Demo", None))
+        self.Real.setText(QCoreApplication.translate("Dialog", u"Real", None))
     # retranslateUi
 
