@@ -5,7 +5,17 @@ Radio APP
 
 1st install Python, Numpy, Scipy, PySide6, collections, SoapySDR and SoapyRTL TCP on your device
 
-or run sudo apt install python3-scipy python3-numpy
+https://github.com/pothosware/SoapySDR
+
+This has all the thing you need todo for SoapySDR
+
+https://github.com/pothosware/SoapyRTLTCP
+
+Build the RTLTCP from source
+
+run pip install PySide6 --break-system-packages
+
+run sudo apt install python3-scipy python3-numpy
 
 Then start a SDR TCP server, you can start this server in any supported device in your local network for best performance
 
