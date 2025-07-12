@@ -5,6 +5,8 @@ Radio APP
 
 1st install Python, Numpy, Scipy, PySide6, collections, SoapySDR and SoapyRTL TCP on your device
 
+or run sudo apt install python3-scipy python3-numpy
+
 Then start a SDR TCP server, you can start this server in any supported device in your local network for best performance
 
 Then download all the files and put them in one folder(KEEP THE STRUCTURE SAME AS REPO)
