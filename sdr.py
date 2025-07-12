@@ -2,35 +2,73 @@ import numpy as np
 import SoapySDR
 from SoapySDR import *
 import time
+from collections import deque
 
-server_ip = "62.45.168.247"
-server_port = "7878"
+server_ip = ""
+server_port = "1234"
+ip_defined = False
 
 
-sample_rate = 1.024e6
+
+
+
+sample_rate = 2.4e6
 decimation_factor = 10
-sdr = SoapySDR.Device(f"rtltcp={server_ip}:{server_port}")
-sdr.setSampleRate(SOAPY_SDR_RX, 0, sample_rate)
-rxStream = sdr.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
-sdr.activateStream(rxStream)
-time.sleep(1.0)
+effective_rate = sample_rate // decimation_factor
 
-def sdriq(i):
-    freq = i * 1e3
-    sdr.setFrequency(SOAPY_SDR_RX, 0, freq)
+buffer_size = 32768
+output_size = 4096
+def ip_port(x,y):
+    global server_ip, server_port, ip_defined, sdr, rxStream
+    server_ip = x
+    server_port = y
+    ip_defined = True
 
-    buff = np.zeros(8192, dtype=np.complex64)
-    iq_buffer = []
+    if ip_defined == True:
+        sdr = SoapySDR.Device(f"rtltcp={server_ip}:{server_port}")
+        sdr.setSampleRate(SOAPY_SDR_RX, 0, sample_rate)
 
+
+        try:
+            sdr.writeSetting("bufflen", "32768")
+        except:
+            pass
+
+        sdr.setFrequency(SOAPY_SDR_RX, 0, 100400e3)
+        rxStream = sdr.setupStream(SOAPY_SDR_RX, SOAPY_SDR_CF32)
+        sdr.activateStream(rxStream)
+        time.sleep(1.0)
+
+def sdriq(frequency_hz):
+
+    sdr.setFrequency(SOAPY_SDR_RX, 0, frequency_hz * 1e3)
+    buff = np.zeros(buffer_size, dtype=np.complex64)
+    iq_buffer = deque()
+    buffer_samples = 0
+    
+
+    sample_count = 0
+    
     while True:
-        sr = sdr.readStream(rxStream, [buff], len(buff), timeoutUs=2000)
+       
+        sr = sdr.readStream(rxStream, [buff], len(buff), timeoutUs=2000000)
+        
         if sr.ret > 0:
-            iq = buff[:sr.ret]
-            iq = iq[::decimation_factor]
-            iq_buffer = np.concatenate([iq_buffer, iq]) if len(iq_buffer) > 0 else iq
-            if len(iq_buffer) >= 4096:
-                yield iq_buffer[:4096]
-                iq_buffer = iq_buffer[4096:]
+
+            iq = buff[:sr.ret:decimation_factor]
+            
+
+            iq_buffer.extend(iq)
+            buffer_samples += len(iq)
+            sample_count += len(iq)
+            
+
+            while buffer_samples >= output_size:
+
+                output_samples = np.array([iq_buffer.popleft() for _ in range(output_size)])
+                buffer_samples -= output_size
+                yield output_samples
+                
         else:
-            time.sleep(0.01)
             print(f"SDR readStream error: {sr.ret}")
+            time.sleep(0.01)
