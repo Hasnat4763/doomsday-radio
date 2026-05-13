@@ -63,7 +63,7 @@ class MainWindow(QMainWindow):
         if not self.ip_defined:
             return
 
-        if self.iq_consumer_thread and self.iq_consumer_thread.is_alive() and self.ip_defined:
+        if self.iq_consumer_thread and self.iq_consumer_thread.is_alive():
             self.running = False
             self.iq_consumer_thread.join()
 
