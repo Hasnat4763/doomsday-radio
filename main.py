@@ -50,16 +50,19 @@ class MainWindow(QMainWindow):
         self.ui.volumebar.valueChanged.connect(self.change_volume)
 
 
-        self.start_audio_stream()
     def change_ip_port(self):
         ip = self.ui.ip.text()
         port = self.ui.port.text()
         ip_port(ip, port)
         self.ip_defined = True
+        self.start_audio_stream()
     def change_volume(self, value):
         self.volume = value / 100.0
 
     def start_audio_stream(self):
+        if not self.ip_defined:
+            return
+
         if self.iq_consumer_thread and self.iq_consumer_thread.is_alive() and self.ip_defined:
             self.running = False
             self.iq_consumer_thread.join()
