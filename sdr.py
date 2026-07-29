@@ -4,7 +4,7 @@ from SoapySDR import *
 import time
 from collections import deque
 
-server_ip = ""
+server_ip = "100.74.124.41"
 server_port = "1234"
 ip_defined = False
 
